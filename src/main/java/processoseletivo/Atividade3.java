@@ -5,27 +5,19 @@ import com.google.gson.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class Atividade3 {
 
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    private final List<DiaFaturamento> faturamentos = new ArrayList<>();
-
     public static void main(String[] args) throws IOException {
-        File file = new File("faturamento.json");
-        Atividade3 at;
-        if (!file.exists()) {
-            at = new Atividade3();
-            String content = gson.toJson(at);
-            Files.write(file.toPath(), content.getBytes(StandardCharsets.UTF_8));
-        } else {
-            try (FileReader reader = new FileReader(file)) {
-                at = gson.fromJson(reader, Atividade3.class);
+        File file = new File("dados.json");
+        List<DiaFaturamento> faturamentos = new ArrayList<>();
+        try (FileReader reader = new FileReader(file)) {
+            JsonArray array = JsonParser.parseReader(reader).getAsJsonArray();
+            for (JsonElement element : array) {
+                JsonObject object = element.getAsJsonObject();
+                faturamentos.add(new DiaFaturamento(object.get("dia").getAsInt(), object.get("valor").getAsDouble()));
             }
         }
 
@@ -34,7 +26,7 @@ public class Atividade3 {
         DiaFaturamento faturamentoMax = null;
         DiaFaturamento faturamentoMin = null;
         double sum = 0.0;
-        for (DiaFaturamento faturamento : at.faturamentos) {
+        for (DiaFaturamento faturamento : faturamentos) {
             sum += faturamento.valor;
             if (faturamento.valor < min) {
                 faturamentoMin = faturamento;
@@ -45,9 +37,9 @@ public class Atividade3 {
                 max = faturamentoMax.valor;
             }
         }
-        double avg = sum / at.faturamentos.size();
+        double avg = sum / faturamentos.size();
         int count = 0;
-        for (DiaFaturamento faturamento : at.faturamentos) {
+        for (DiaFaturamento faturamento : faturamentos) {
             if (faturamento.valor > avg) {
                 count++;
             }
@@ -56,10 +48,10 @@ public class Atividade3 {
     }
 
     private static class DiaFaturamento {
-        private final Date data;
+        private final int data;
         private final double valor;
 
-        public DiaFaturamento(Date data, double valor) {
+        public DiaFaturamento(int data, double valor) {
             this.data = data;
             this.valor = valor;
         }
